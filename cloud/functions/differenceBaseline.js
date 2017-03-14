@@ -1,10 +1,31 @@
-Parse.Cloud.beforeSave("CareRecipientMeasurement", function (request, response) {
-    var differenceBaselineClass = require('../../ruleFunctions/differenceBaslineFn');
-    differenceBaselineClass.differenceBaselineFunction(request.params.start, request.params.baseline, request.params.username, request.params.type).then(
-        function success(data) {
-            res.success("Success differencebaseline " + JSON.stringify(data));
+exports.differenceBaselineFn = function (username, type, end, baseline) {
+    var query = new Parse.Query("CareRecipientMeasurement");
+
+    query.equalTo("username", username);
+    query.equalTo("type", type);
+    query.equalTo("measuredDate", end);
+    query.include("readings");
+    query.include("readings.reading");
+    query.first({
+        success: function (obj) {
+            // Get readings
+            var readings = obj.get("readings");
+            var reading = parseFloat(readings[0].reading).toFixed(2);
+            // Added correlation for clarity, postive or negative difference
+            var correlation = "";
+            if (reading > baseline) {
+                var difference = reading - baseline;
+                correlation = "+"
+            } else {
+                var difference = baseline - reading;
+                correlation = "-"
+            }
+            response.success("Differencebaseline of Object in cloud code: " + obj + " reading difference is: " + correlation + difference);
+            promise.resolve(difference);
         },
-        function error(err) {
-            res.error("Error: " + JSON.stringify(err));
-        });
-});
+        error: function (err) {
+            response.error("difference inside 1 fail: " + err);
+            promise.reject(err);
+        }
+    });
+})

@@ -1,10 +1,19 @@
-Parse.Cloud.beforeSave("CareRecipientMeasurement", function (request, response) {
-    var countClass = require('../../ruleFunctions/countFn');
-    countClass.countFunction(request.params.start, request.params.end, request.params.username, request.params.type).then(
-        function success(data) {
-            res.success("Success counting " + JSON.stringify(data));
+exports.countFn = function (username, type, start, end) {
+    var query = new Parse.Query("CareRecipientMeasurement");
+    var promise = new Parse.Promise();
+
+    query.greaterThanOrEqualTo("measuredDate", start);
+    query.lessThanOrEqualTo("measuredDate", end);
+    query.equalTo("username", username);
+    query.equalTo("type", type);
+    query.count({
+        success: function (obj) {
+            response.success("Number of Object in cloud code: " + obj);
+            promise.resolve(obj);
         },
-        function error(err) {
-            res.error("Error: " + JSON.stringify(err));
-        });
-});
+        error: function (err) {
+            response.error("Counter fail: " + err);
+            promise.reject(err);
+        }
+    });
+})

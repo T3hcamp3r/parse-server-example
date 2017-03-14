@@ -1,20 +1,28 @@
-Parse.Cloud.beforeSave("CareRecipientMeasurement", function (request, response) {
-    var sumClass = require('../../ruleFunctions/sumFn');
+exports.sumFn = function(username, type, start, end) {
+    var query = new Parse.Query("CareRecipientMeasurement");
 
-    var start = new Date();
-    start.setDate(7);
-    start.setMonth(3);
-    start.setFullYear(2017);
+    query.equalTo("username", username);
+    query.equalTo("type", type);
+    query.greaterThanOrEqualTo("measuredDate", start);
+    query.lessThanOrEqualTo("measuredDate", end)
+    query.include("readings");
+    query.include("readings.reading");
 
-    var obj = request.Object;
-    var end = obj.get("measuredDate");
-
-
-    sumClass.sumFunction(start, end, request.params.username, request.params.type).then(
-        function success(data) {
-            res.success("Success sum " + JSON.stringify(data));
-        },
-        function error(err) {
-            res.error("Error: " + JSON.stringify(err));
-        });
+    query.find({
+        success: function(obj){
+            var sum = 0;
+            for(var i = 0; i < obj.length; i++){
+                // Unable to retrieve obj.readings.length
+                var readings = obj[i].get("readings");
+                for(var j = 0 ; j < readings.length ; j++){
+                    sum += parseFloat(readings[j].reading).toFixed(2);
+                }
+            }
+            response.success("Sum object in cloud code: " + obj + " average value : " + sum )
+        }, error : function(err){
+            response.error("Error getting average: " + err);
+        }
+    });
 });
+
+
