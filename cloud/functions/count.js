@@ -16,4 +16,4 @@ exports.countFn = function (username, type, start, end) {
             promise.reject(err);
         }
     });
-})
+}

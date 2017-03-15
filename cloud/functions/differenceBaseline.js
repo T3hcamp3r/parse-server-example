@@ -28,4 +28,4 @@ exports.differenceBaselineFn = function (username, type, end, baseline) {
             promise.reject(err);
         }
     });
-})
+}

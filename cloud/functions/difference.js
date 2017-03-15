@@ -47,4 +47,4 @@ exports.differenceFn = function (username, type, first, second) {
         }
     });
 
-});
+}

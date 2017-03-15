@@ -23,6 +23,6 @@ exports.sumFn = function(username, type, start, end) {
             response.error("Error getting average: " + err);
         }
     });
-});
+}
 
 
