@@ -11,9 +11,10 @@
   "dependencies": {
     "express": "~4.11.x",
     "kerberos": "~0.0.x",
+    "mathjs": "^3.10.0",
     "moment": "^2.17.1",
     "parse": "~1.8.0",
-    "parse-server": "*"
+    "parse-server": "^2.3.7"
   },
   "scripts": {
     "start": "node index.js"

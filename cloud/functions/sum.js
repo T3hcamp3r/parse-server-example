@@ -1,5 +1,6 @@
-exports.sumFn = function(username, type, start, end) {
+exports.sumFn = function (username, type, start, end) {
     var query = new Parse.Query("CareRecipientMeasurement");
+    var promise = new Parse.Promise();
 
     query.equalTo("username", username);
     query.equalTo("type", type);
@@ -8,20 +9,19 @@ exports.sumFn = function(username, type, start, end) {
     query.include("readings");
     query.include("readings.reading");
 
-    query.find({
-        success: function(obj){
-            var sum = 0;
-            for(var i = 0; i < obj.length; i++){
-                // Unable to retrieve obj.readings.length
-                var readings = obj[i].get("readings");
-                for(var j = 0 ; j < readings.length ; j++){
-                    sum += parseFloat(readings[j].reading).toFixed(2);
-                }
-            }
-            response.success("Sum object in cloud code: " + obj + " average value : " + sum )
-        }, error : function(err){
-            response.error("Error getting average: " + err);
-        }
+    var sum = 0;
+
+    return promise = query.find().then(function(obj){
+        var subPromise = new Parse.Promise();
+        obj.forEach(function(obj){
+            var readings = obj.get("readings");
+            readings.forEach(function(reading){
+                sum += parseFloat(reading.reading);
+            });
+        });
+        console.log("Sum inside sum function " + sum);
+        subPromise.resolve(sum);
+        return subPromise;
     });
 }
 

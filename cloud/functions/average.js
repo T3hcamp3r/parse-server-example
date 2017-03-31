@@ -1,6 +1,6 @@
 exports.averageFn = function (username, type, start, end) {
     var query = new Parse.Query("CareRecipientMeasurement");
-    var promise = new Parse.Promise();
+    var promise = Parse.Promise.as();
 
     console.log("Username received:" + username);
     console.log("Type received:" + type);
@@ -9,35 +9,51 @@ exports.averageFn = function (username, type, start, end) {
     query.equalTo("username", username);
     query.equalTo("type", type);
     query.greaterThanOrEqualTo("measuredDate", start);
-    query.lessThanOrEqualTo("measuredDate", end)
+    query.lessThanOrEqualTo("measuredDate", end);
     query.include("readings");
     query.include("readings.uom");
     query.include("readings.reading");
 
-    query.find({
-        success: function (obj) {
-            var averageValue = 0;
-            var counter = 0;
-            var readings = obj[0].get("readings");
-            var reading = readings[0].reading;
-            console.log("Reading: " + reading);
-            for (var i = 0; i < obj.length; i++) {
-                var readings = obj[i].get("readings");
-                for (var j = 0; j < readings.length; j++) {
-                    // Previously taken in as a string
-                    averageValue += parseFloat(readings[j].reading).toFixed(2);
-                    counter++;
-                }
-            }
-            averageValue /= counter;
-            console.log("Average calculation success: " + averageValue);
-            promise.resolve(averageValue);
-        }, error: function (err) {
-            response.error("Error getting average: " + err);
-            promise.reject(err);
-        }
-    });
-    return promise;
+    var counter = 0;
+    var average = 0;
+    return promise = (query.find().then(function (obj) {
+        var subPromise = new Parse.Promise();
+        obj.forEach(function (obj) {
+            var readings = obj.get("readings");
+            readings.forEach(function (readings) {
+                average += parseFloat(readings.reading);
+                counter++;
+            });
+        });
+        average /= counter;
+        console.log("Average calculated: " + average);
+        subPromise.resolve(average);
+        console.log("Average calculated2: " + average);
+        return subPromise;
+    }));
 }
 
+    // query.find({
+    //     success: function (obj) {
+    //         console.log("jjjjjj" + obj);
+    //         //var measurement = [];
+    //         var averageValue = 0;
+    //         var counter = 0;
+    //         for (var i = 0; i < obj.length; i++) {
+    //             var readings = obj[i].get("readings");
+    //             for (var j = 0; j < readings.length; j++) {
+    //                 averageValue += parseFloat(readings[j].reading);
+    //                 counter++;
+    //             }
+    //         }
+    //         averageValue /= counter;
+    //         response.success("Average Object in cloud code: " + obj + " average value: " + averageValue);
+    //         promise.resolve(averageValue);
+    //     },
+    //     error: function (err) {
+    //         response.error("Error getting Average: " + err);
+    //         promise.reject(err);
+    //     }
+    // });
 
+    // return promise;

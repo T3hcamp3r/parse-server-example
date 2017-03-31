@@ -12,8 +12,6 @@ Parse.Cloud.define("ruleEngine", function (request, response) {
     var type = request.params.type;
     var endDate = new Date(request.params.endDate);
 
-    // Real situation will be after a save, so I get first result to compare with baseline
-
     // First get username related to deviceId
     var username;
     usernameQuery = new Parse.Query("DeviceUsername");
@@ -128,8 +126,9 @@ Parse.Cloud.define("ruleEngine", function (request, response) {
                                 switch (ComparisonType) {
                                     case ">":
                                         if (result > TriggerValue) {
-
-                                        }
+                                            console.log("Greater than");
+                                        }else
+                                            console.log("Not triggered");
                                         break;
 
                                     case "<":
